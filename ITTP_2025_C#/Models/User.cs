@@ -20,5 +20,17 @@
         public string RevokedBy { get; set; }
 
         public bool IsRevoked => RevokedOn.HasValue;
+
+        public int Age
+        {
+            get
+            {
+                if (Birthday == null) return 0;
+                var today = DateTime.Today;
+                var age = today.Year - Birthday.Value.Year;
+                if (Birthday.Value > today.AddYears(-age)) age--;
+                return age;
+            }
+        }
     }
 }

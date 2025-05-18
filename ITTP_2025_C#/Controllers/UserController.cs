@@ -8,7 +8,6 @@ namespace ITTP_2025_C_.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -63,9 +62,17 @@ namespace ITTP_2025_C_.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id, [FromBody] DeleteUserDto dto)
+        public async Task<IActionResult> DeleteUser(Guid id, [FromQuery] bool softDelete = false)
         {
-            var success = await _userService.DeleteUserAsync(id, dto);
+            var success = await _userService.DeleteUserAsync(id, softDelete);
+            if (!success) return NotFound();
+            return NoContent();
+        }
+
+        [HttpPatch("restore/{id}")]
+        public async Task<IActionResult> RestoreUser(Guid id)
+        {
+            var success = await _userService.RestoreUserAsync(id);
             if (!success) return NotFound();
             return NoContent();
         }

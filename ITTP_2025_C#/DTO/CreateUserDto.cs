@@ -21,6 +21,8 @@ namespace ITTP_2025_C_.DTO
 
         public DateTime? Birthday { get; set; }
 
+        public bool Admin { get; set; }
+
         [Required]
         public string CurrentUserLogin { get; set; } // Кто создает
     }

@@ -9,6 +9,7 @@ namespace ITTP_2025_C_.Services
         public Task<User?> GetUserByIdAsync(Guid id);
         public Task<User> CreateUserAsync(CreateUserDto dto);
         public Task<bool> UpdateUserAsync(Guid id, UpdateUserDto dto);
-        public Task<bool> DeleteUserAsync(Guid id, DeleteUserDto dto);
+        public Task<bool> DeleteUserAsync(Guid id, bool softDelete);
+        public Task<bool> RestoreUserAsync(Guid id);
     }
 }

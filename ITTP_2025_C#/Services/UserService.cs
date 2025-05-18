@@ -12,8 +12,8 @@ namespace ITTP_2025_C_.Services
             // Преднастроенный пользователь Admin
             var adminUser = new User
             {
-                Login = "Admin",
-                PasswordHash = Tools.CreateSHA256("adminpass"),
+                Login = "admin",
+                PasswordHash = Tools.CreateSHA256("admin"),
                 Name = "Administrator",
                 Gender = 2,
                 Admin = true,
@@ -47,7 +47,7 @@ namespace ITTP_2025_C_.Services
                 Name = dto.Name,
                 Gender = dto.Gender,
                 Birthday = dto.Birthday,
-                Admin = false,
+                Admin = dto.Admin,
                 CreatedBy = dto.CurrentUserLogin
             };
 
@@ -60,15 +60,24 @@ namespace ITTP_2025_C_.Services
             var user = _users.FirstOrDefault(u => u.Guid == id && !u.IsRevoked);
             if (user == null) return Task.FromResult(false);
 
-            if (!string.IsNullOrEmpty(dto.Login) &&
-                _users.Any(u => u.Guid != id && u.Login == dto.Login && !u.IsRevoked))
-                throw new InvalidOperationException("Логин уже используется другим пользователем.");
+            if (!string.IsNullOrEmpty(dto.Login))
+            {
+                if (_users.Any(u => u.Login == dto.Login && u.Guid != user.Guid && !u.IsRevoked))
+                    throw new InvalidOperationException("Логин уже используется другим пользователем.");
+                user.Login = dto.Login;
+            }
 
-            user.Login = dto.Login ?? user.Login;
-            user.PasswordHash = !string.IsNullOrEmpty(dto.Password) ? Tools.CreateSHA256(dto.Password) : user.PasswordHash;
-            user.Name = dto.Name ?? user.Name;
-            user.Gender = dto.Gender ?? user.Gender;
-            user.Birthday = dto.Birthday ?? user.Birthday;
+            if (!string.IsNullOrEmpty(dto.Password))
+                user.PasswordHash = Tools.CreateSHA256(dto.Password);
+
+            if (!string.IsNullOrEmpty(dto.Name))
+                user.Name = dto.Name;
+
+            if (dto.Gender.HasValue)
+                user.Gender = dto.Gender.Value;
+
+            if (dto.Birthday.HasValue)
+                user.Birthday = dto.Birthday;
 
             user.ModifiedOn = DateTime.UtcNow;
             user.ModifiedBy = dto.CurrentUserLogin;
@@ -76,13 +85,31 @@ namespace ITTP_2025_C_.Services
             return Task.FromResult(true);
         }
 
-        public Task<bool> DeleteUserAsync(Guid id, DeleteUserDto dto)
+        public Task<bool> DeleteUserAsync(Guid id, bool softDelete)
         {
             var user = _users.FirstOrDefault(u => u.Guid == id && !u.IsRevoked);
             if (user == null) return Task.FromResult(false);
 
-            user.RevokedOn = DateTime.UtcNow;
-            user.RevokedBy = dto.CurrentUserLogin;
+            if (softDelete)
+            {
+                user.RevokedOn = DateTime.UtcNow;
+                user.RevokedBy = "CurrentUser";
+            }
+            else
+            {
+                _users.Remove(user);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> RestoreUserAsync(Guid id)
+        {
+            var user = _users.FirstOrDefault(u => u.Guid == id && u.IsRevoked);
+            if (user == null) return Task.FromResult(false);
+
+            user.RevokedOn = null;
+            user.RevokedBy = null;
 
             return Task.FromResult(true);
         }
