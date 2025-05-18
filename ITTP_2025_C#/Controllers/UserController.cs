@@ -1,12 +1,14 @@
 ﻿using ITTP_2025_C_.DTO;
 using ITTP_2025_C_.Models;
 using ITTP_2025_C_.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITTP_2025_C_.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
